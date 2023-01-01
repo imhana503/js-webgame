@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>반응속도체크</title>
+  <style>
+    #screen{
+      width:300px;
+      height:200px;
+      text-align: center;
+      user-select: none;
+    }
+    #screen.waiting{
+      background:aqua
+    }
+    #screen.ready{
+      background:red;
+      color:#fff;
+    }
+    #screen.now{
+      background:greenyellow
+    }
+
+  </style>
+</head>
+<body>
+  <div id="screen" class="waiting">클릭해서 시작하세요</div>
+  <div id="result"></div>
+  <script>
+    const $screen = document.querySelector('#screen');
+    const $result = document.querySelector('#result');
+
+    let startTime;
+    let endTime;
+    const records = [];
+    let timeoutId;
+    $screen.addEventListener('click', (e) => {
+      if(e.target.classList.contains('waiting')){ //파랑
+        $screen.classList.replace('waiting', 'ready');
+        $screen.textContent = '초록색이 되면 클릭하세요!';
+        setTimeout(()=>{
+          timeoutId = startTime = new Date();
+          $screen.classList.replace('ready', 'now');
+          $screen.textContent = '클릭하세요';
+          //첫시간재기
+        }, Math.floor(Math.random()*1000)+2000); //2초에서 3초사이 2000~3000 사이 
+      } else if(e.target.classList.contains('ready')){ //빨강
+        clearTimeout(timeoutId);
+        $screen.classList.replace('ready', 'waiting');
+        $screen.textContent = '너무 성급하시군요!';
+      } else if(e.target.classList.contains('now')){ //초록
+        endTime = new Date();
+        const current = endTime - startTime;
+        records.push(current)
+        const average = records.reduce((a,c)=>a+c) / records.length; //평균 구하기
+        /*
+          records
+          [1,2,3,4].reduce((a,c)=>(a+c), 0); //10 a:누적값 c:현재값 0: 초기값(초기값이 처음 누적값이 된다, 초기값을 안넣으면 첫번쨰값이 초기값이 된다.)
+          a:0, c:1,
+          a:1, c:2,
+          a:3, c:3
+          a:6, c:4
+          10
+          [1,2,3,4].reduce((a,c)=>(a*c),1);//24
+
+          배열을 객체리터럴로 변경
+          ['철수','영희','현영','한솔'].reduce((a,c,i)=>{a[i] = c; return a}, {}); //{0: '철수', 1: '영희', 2: '현영', 3: '한솔'} i->index
+          a:{}, c:'철수', i:0
+          a:{0:철수, 1:'영희'} c:'영희', i:1
+          a:{0:철수, 1:'영희' 2:'현영'} c:'현영', i:2
+          a:{0:철수, 1:'영희' 2:'현영', 3:'한솔'} c:'한솔', 1:3
+        */
+        $result.textContent = `현재 ${current}ms, 평균: ${average}ms`;
+        //값을 초기화
+        startTime = null;
+        endTime = null;
+        $screen.classList.replace('now','waiting');
+        $screen.textContent = '클릭해서 시작하세요.';
+      }
+    })
+
+   
+    
+  </script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    .ball{
+      display:inline-block;
+      border:1px solid #000;
+      width:40px;
+      height:40px;
+      border-radius: 40px;
+      line-height: 40px;
+      font-size:20px;
+      text-align:center;
+      margin-right:20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="result">추첨 결과는?</div>
+  <div id="bonus">보너스:</div>
+<script>
+  /*
+  비동기 -> 실제로 코딩한 순서와 다르게 동작하는 코드를 비동기 코드라고 부른다.
+  대표적인 코드는 이벤트리스너, 타이머등이있다.
+  */
+ const candidate = Array(45).fill().map((v,i)=>i+1);
+ const shuffle = [];
+ /*
+ while 문은 조건이 간단할 때 쓰는게 좋다.
+ while 문은 내가 몇번 반복해야할지 정확하지 않을때 쓴다.
+ */
+ while(candidate.length > 0){
+  const random = Math.floor(Math.random() *candidate.length) //무작위 인덱스 뽑기
+  const spliceArray = candidate.splice(random,1); //뽑은 값은 배열에 들어 있음
+  const value = spliceArray[0]; //배열에 들어 있는 값을 꺼내어
+  shuffle.push(value) //shuffle 배열에 넣기
+ }
+ console.log(shuffle);
+ const winBalls = shuffle.slice(0,6).sort((a,b)=>a-b); //slice 자라는 메서드, sort정렬(원본을 바꾼다)하는 메서드 (원본이 변하지않는 메서드 map, slice)
+ const bonus = shuffle[6];
+ console.log(winBalls,bonus)
+ /*
+ sort 원본을 바꾸지 않으려면 slice 복사를 한 다음 사용해주면된다.
+ ex) array.slice().sort((a,b)=>a-b); a-b 오름차순 b-a 내림찬순
+ */
+
+ const $result = document.querySelector('#result');
+ const $bonus = document.querySelector('#bonus');
+
+ function colorize(number, $tag){
+  if(number<10){
+    $tag.style.backgroundColor = 'red';
+    $tag.style.color = 'white';
+  } else if(number<20){
+    $tag.style.backgroundColor = 'orange';
+  } else if(number<30){
+    $tag.style.backgroundColor = 'yellow';
+  } else if(number<40){
+    $tag.style.backgroundColor = 'blue';
+    $tag.style.color = 'white';
+  } else if(number<50){
+    $tag.style.backgroundColor = 'green';
+    $tag.style.color = 'white';
+  }
+ }
+
+ const drawBall = (number, $parent) => {
+  const $ball = document.createElement('div');
+  $ball.className = 'ball';
+  $ball.textContent = number;
+  colorize(number, $ball)
+  $parent.appendChild($ball);
+ }
+
+ for(let i=0; i<winBalls.length;i++){ //var i 로하면 i setTimeout 전에 6이되어버린다.
+  setTimeout(()=>{
+    drawBall(winBalls[i], $result);
+  },(i+1)*1000);
+ }
+ /*var 바꿔주면 -> 클로저문제(함수와 함수밖의 변수의 문제)
+ for(var i=0; i<winBalls.length;i++){ 
+  (function(j){ //즉시실행함수
+    setTimeout(()=>{
+      drawBall(winBalls[j], $result);
+    },(i+1)*1000);
+  })(i); //i -> j로 바꿔준다.
+ }*/
+
+ setTimeout(()=>{
+  drawBall(bonus, $bonus);
+  }, 7000);
+ /*
+ 자바스크립트의 타이머 시간은 정확하지 않다.
+ 자바스크립트는 기존벅으로 한 번에 한 가지 일만 할 수 있다.
+ 따라서 이미 많은 일을 하고 있다면 설정한 시간이 되어도 setTimeout에 지정된 작업이 수행되지않는다.
+ 기존에 하고 있던 일이 끝나야 setTimeout에 지정한 작업이 실행된다.
+ */
+
+ /*
+ var와 let의 차이 이해하기
+ 변수는 스코프(scope, 범위)라는 것을 가진다.
+ var 는 함수 스코프를 가지고, let은 블록 스코프를 가진다.
+ */
+
+function b(){
+  var a = 1;
+}
+console.log(a) //Uncaught ReferenceError: a is not defined
+
+if(true){
+  let a = 1;
+}
+console.log(a); //Uncaught ReferenceError: a is not defined
+   
+if(true){
+  var a = 1;
+}
+console.log(a);  //1
+
+
+ 
+</script>
+</body>
+</html>

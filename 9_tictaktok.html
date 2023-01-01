@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    table{
+      border-collapse: collapse;
+    }
+    td{
+      border:1px solid #000;
+      width:40px;
+      height:40px;
+      text-align:center;
+    }
+  </style>
+</head>
+<body>
+<script>
+  /*
+  구조분해할당 - 객체안의 속성이름과, 변수명이 같을때 사용한다.
+  const {body} = document;
+  
+  const arr = [1,2,3,4];
+  const one = arr[0];
+  const two = arr[1];
+  const three = arr[2];
+  const four = arr[3];
+
+  const arr = [1,2,3,4];
+  const [one,two,three,four] = arr;
+
+  중간값이 생략된다면 [one,two,,four] = arr; //값을 비워주면된다
+  */
+
+  let turn = 'O';
+
+  //이차원배열 -> 배열안에 배열이 들어있다.
+  const rows = [];  
+
+  const $table = document.createElement('table');
+  const $result = document.createElement('div');
+  /*
+  [
+    [td,td,td],
+    [td,td,td],
+    [td,td,td],
+  ]
+  */
+  const cheackWinner = (target) => {
+    /*
+    let rowIndex;
+    let cellIndex;
+    rows.forEach((row,ri)=>{
+      row.forEach((cell, ci)=>{
+        if(cell === target){
+          rowIndex = ri;
+          cellIndex = ci;
+        }
+      })
+    });
+    */
+
+    //몇번쨰줄 몇번째칸일지알려면
+    const rowIndex = target.parentNode.rowIndex;
+    const cellIndex = target.cellIndex;
+
+    console.log(rowIndex,cellIndex)
+    
+    //세 칸 다 채워졌나?
+    let hasWinner = false;
+    // 가로줄검사
+    if(
+      rows[rowIndex][0].textContent === turn &&
+      rows[rowIndex][1].textContent === turn &&
+      rows[rowIndex][2].textContent === turn
+    ){
+      hasWinner = true;
+    }
+    //세로줄 검사
+    if(
+      rows[0][cellIndex].textContent === turn &&
+      rows[1][cellIndex].textContent === turn &&
+      rows[2][cellIndex].textContent === turn 
+    ){
+      hasWinner = true;
+    }
+    //대각선검사
+    if(
+      rows[0][0].textContent === turn &&
+      rows[1][1].textContent === turn &&
+      rows[2][2].textContent === turn
+    ){
+      hasWinner = true;
+    }
+    if(
+      rows[0][2].textContent === turn &&
+      rows[1][1].textContent === turn &&
+      rows[2][0].textContent === turn
+    ){
+      hasWinner = true;
+    }
+    return hasWinner;
+    /*
+    유사배열. 
+    $table.children
+    HTMLCollection(3) [tr, tr, tr]
+    앞에 HTMLCollection(3) 텍스트 가 붙으면 유사배열.
+    배열로 바꾸고 싶다면.
+    Array.from($table.children) -> (3) [tr, tr, tr]
+    */
+
+  }
+
+
+  const callback = (e) => {
+    /*
+      이벤트 버블링현상을 막으려면,
+      e.stopPropagation();
+      이벤트 캡쳐링 -> 팝업을 닫을 때 많이 사용한다. 부모 클릭 시, 이벤트
+    */
+    //console.log(e.currentTarget); table 클릭시 table
+    // 칸에 글자가 있나?
+    if(e.target.textContent !==''){ //칸이 이미 채워져있는가?
+      console.log('빈칸이 아닙니다.');
+      return;
+    }
+    //빈칸이면    
+    console.log('빈칸입니다.');   
+    e.target.textContent = turn;
+    //승부판단하기
+    const hasWinner = cheackWinner(e.target)
+    if(hasWinner){
+      $result.textContent = `${turn}님이 승리!`;
+      $table.removeEventListener('click', callback); //이벤트 종료
+      return; 
+    }
+
+    /*
+    2차원배열 1차원배열로 만들기
+    0
+    : 
+    (3) [td, td, td]
+    1
+    : 
+    (3) [td, td, td]
+    2
+    : 
+    (3) [td, td, td]
+    rows.flat(); ->[td, td, td, td, td, td, td, td, td] 변경됨 (3차원 배열은 2차원배열로 만들어 준다)
+    const array = [[1,2,3],[4,5,6]];
+    array.flat(); (6) [1, 2, 3, 4, 5, 6]
+    const array2 = [[1,2,3],[[4,5,6]]]
+    array2.flat();
+    (4) [1, 2, 3, Array(3)]
+    0
+    : 
+    1
+    1
+    : 
+    2
+    2
+    : 
+    3
+    3
+    : 
+    (3) [4, 5, 6]
+    
+    every()메서드 모두가 true여야지 true / every() 1차원 배열에서만 쓸 수 있다.;
+    every메서드는 반복문의 일종으로 요소를 순회하면서 조건 함수의 반환값이 모두 true여야 true를 반환한다.
+    조건 함수의 반환값이 하나라도 false면 every메서드는 반환값도 false 가 된다.
+    일반 반복문보다 더 효율적이다. 일반 반복문을 사용할 떄는 직접 멈추지 않으면 끝까지 탐색하는데,
+    every는 조건에 만족하지 않는 요소를 하나라도 찾으면 거기서 반복을 중단합니다.
+    배열.every(조건함수)
+    rows.flat().every((td)=>td.textContent) // false
+
+    some()메서드 하나라도 true면 true;
+    some은 하나라도 조건을 만족하는 요소를 찾으면 반복을 중단하는 메서드입니다. 따라서 일반 반복문보다 더 효율적인 경우가 많다
+    ex)하나라도 null이 들어있으면 true아니면 false
+    const array = [1,'hello', null];
+    array.some((value) => value === null) // true
+
+    rows.flat().some((td)=>td.textContent)
+    
+    */
+
+    //무승부 검사(한칸이라도 비워있으면)
+    /*let draw = true;
+    rows.forEach((row)=>{
+      row.forEach((cell)=>{
+        if(!cell.textContent){
+          draw = false;
+        }
+      })
+    });*/
+    const draw = rows.flat().every((cell)=>cell.textContent)
+    if(draw){
+      $result.textContent = `무승부`;
+      return;
+    }
+
+    /*(칸이 꽉 찼는지)
+    let count = 0;
+    rows.forEach((row)=>{
+      row.forEach((cell)=>{
+        if(cell.textContent){
+          count +=1;
+        }
+      })
+    });
+    if(count === 9){
+      $result.textContent = `무승부`;
+      return;
+    }*/
+
+    //승부확인
+    turn === 'O' ? turn = 'X' : turn = 'O';
+  }
+
+
+  for(let i=0; i<3; i++){
+    const $tr = document.createElement('tr');
+    const cells = [];
+    for(let j=0; j<3; j++){
+      const $td = document.createElement('td');
+      cells.push($td)
+      //$td.addEventListener('click', callback);
+      $tr.append($td);
+    }
+    rows.push(cells);
+    $table.append($tr);
+  }
+  /*
+  게임이 완전히 끝났을때, removeEventListener를 사용해주는데 좋다.
+  이벤트 버블링 - 이벤트가 부모태그에도 동일한 이벤트가 발생하는 현상
+  */
+  $table.addEventListener('click', callback); //이벤트 버블링 현상, table 클릭해도 td클릭한것과 동일한 현상이 일어난다.
+  //만약 진짜table을 사용하고싶다면 e.currentTarget을 사용한다.
+  document.body.append($table);
+  document.body.append($result);
+  
+</script>
+</body>
+</html>
