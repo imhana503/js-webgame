@@ -63,6 +63,19 @@
     hp:100, //현재체력
     xp:0, //현재경험치
     att:0, //공격력
+    attack(monster){ //this는 자기 자신(function일때) / 화살표함수에서 this는 window가 된다 -> this제로초 블로그글 읽기
+      monster.hp -= this.att;
+      this.hp -= monster.att;
+    },
+    /*
+    attack:function(monster){ function 생략가능
+    
+    },
+    */
+    heal(){
+      this.hp += 20;
+      this.hp -= monster.att;
+    }
   }
   let monster = null;
   const monsterList = [
@@ -96,7 +109,6 @@
       $monsterName.textContent = monster.name;
       $monsterHp.textContent = `HP: ${monster.hp}/${monster.maxHp}`;
       $monsterAtt.textContent = `ATT:${monster.att}`;
-
     } else if(input === '2'){ //휴식
 
     } else if(input === '3'){ //종료
@@ -104,6 +116,20 @@
     }
   });
 
+
+  $battleMenu.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const input = e.target['battle-input'].value; 
+    if(input === '1'){ //공격
+     
+    } else if(input === '2'){ //휴식
+
+    } else if(input === '3'){ //종료
+
+    }
+  })
+
+  /*
   const monster1 = JSON.parse(JSON.stringify(monsterList[0])); //깊은복사
   const monster2 = monsterList[0]; //참조 : 객체를 대입하면 참조(참조하면 원래 값도 바뀐다)
   console.log(monster1,monster2); //동일함 {name: '슬라임', hp: 25, att: 10, xp: 10} 
@@ -117,6 +143,69 @@
   console.log(monsterList[0].name); //새 몬스터
   console.log(monsterList[0] === monster1); //false, 깊은복사
   console.log(monsterList[0] === monster2); //true, 참조관계
+
+  참조, 얕은복사, 깊은복사 알아두기!
+  const a = [];
+  const b = 'hello';
+  const c = {};
+  const arr = [a,b,c];
+  // const arr1 = arr;
+
+  // arr1[1] = 'hi';
+  // console.log(arr[1]) //hi 바뀌어버림
+
+  const arr2 = [...arr]; //가장 껕에 껍데기 복사가되고, 안에 있는 건 객체 값들은 참조가된다
+  arr2[1] = 'babo';
+  console.log(arr[1]) //hello 안바뀜
+  //arr2[0].push(1);
+  //console.log(arr[0]) //[1] ->바뀜!! 문제점 그래서 JSON.parse를 써준다.
+
+  const arr3 = JSON.parse(JSON.stringify(arr));
+  arr3[0].push(2);
+  console.log(arr[0]); //[]
+
+  const a = 'b';
+  const c = ['d', true, 1];
+  const e = {g:'h'};
+  const i = [{j:'k'},{l:'m'}];
+  const n = {o:{p:'q'}}
+
+  const a1 =a;
+  const c1 = c.slice(); //[...cd]
+  const e1 = {...e};
+  const i1 = JSON.parse(JSON.stringify(i));
+  const n1 = JSON.parse(JSON.stringify(n));
+  console.log(a1); //b
+  console.log(c1); //['d', true, 1] 객체안에 객체가 들어있지않으면 얕은복사가 복사다. (객체 안에 객체가 들어있을때는 JSON.parse 써준다고생각하자)
+  console.log(i1); //[{j:'k'},{l:'m'}]
+  console.log(n1); //{o:{p:'q'}}
+  */
+
+  /*concat -> 배열을 합치는 메서드
+  const g = ['1'];
+  g.concat(2,3) //['1', 2, 3]
+  */
+
+  /*
+    this
+  const b = {
+    name : '제로초',
+    sayName(){
+      console.log(this ===b);
+    }
+  }
+  b.sayName(); //true;
+
+  const bf = b.sayName;
+  bf(); //false;
+
+  객체.메서드를 해줘야 this 자기자신이된다*/
+  
+  
+
+
+  
+
   
 
 
