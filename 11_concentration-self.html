@@ -97,7 +97,7 @@
 
     const firstBackColor = clicked[0].querySelector('.card-back').style.backgroundColor;
     const secondBackColor = clicked[1].querySelector('.card-back').style.backgroundColor;
-    if(firstBackColor == secondBackColor){ //두 카드가 같으면
+    if(firstBackColor == secondBackColor){ //두 카드가 같으면         
       completed.push(clicked[0]);
       completed.push(clicked[1]);
       clicked = []; //위에 3개 코드를 줄여서 쓴다면 completed.concat(clicked)
@@ -105,16 +105,19 @@
         return;
       } 
       setTimeout(()=>{ //마지막카드가 안집히기때문에 setTimeout 추가
-        alert('축하합니다')
+        alert('축하합니다');
+        resetGame();
       },1000)
-      
       return;
     }
+    
     //두 카드가 다르면
+    clickable = false;
     setTimeout(()=>{ //setTimeout 쓴이유는 카드를 뒤집었을떄 제대로 작동이되지않는데. (flipped있는 상태에서 flipped 또 사라져버리기때문)
       clicked[0].classList.remove('flipped');
       clicked[1].classList.remove('flipped');
       clicked = [];
+      clickable = true;
     },500);
   }
 
@@ -173,8 +176,32 @@
   실행이 완료된 함수는 호툴 스택에서 빠져나가게되고, 호출 스택이 비면 이벤트 루프는 태스트큐에있는 다음 함수를 호출스택으로 옮긴다.
   
   쌓일떄는 아래서부터 쌓이고, 위에서부터 나가게된다.
-  */
+  
 
+
+  function aaa(){
+    setTimeout(()=>{
+      console.log('d')
+    },0);
+    console.log('c');
+
+    setTimeout(()=>{
+      console.log('a');
+      aaa();
+    },0);
+    
+    setTimeout(()=>{
+      aaa();
+      console.log('b');
+    },0);
+  }
+  
+  //호출스택:
+  //백그라운드: 
+  //태스트큐:
+  //콘솔:
+  제로초 실행컨테스트, 함수스코프 확인
+  */
 
  
   
