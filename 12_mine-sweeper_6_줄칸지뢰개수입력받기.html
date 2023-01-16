@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>지뢰찾기</title>
+<style>
+  table { border-collapse: collapse; }
+  td {
+    border: 1px solid #bbb;
+    text-align: center;
+    line-height: 20px;
+    width: 20px;
+    height: 20px;
+    background: #888;
+  }
+  td.opened { background: white; }
+  td.flag { background: red; }
+  td.question { background: orange; }
+</style>
+</head>
+
+<body>
+<form id="form">
+  <input placeholder="가로 줄" id="row" size="5" />
+  <input placeholder="세로 줄" id="cell" size="5" />
+  <input placeholder="지뢰" id="mine" size="5" />
+  <button>생성</button>
+</form>
+<div id="timer">0초</div>
+<table id="table">
+  <tbody></tbody>
+</table>
+<div id="result"></div>
+<script>
+/*
+칸 상태에 따른 코드
+종류 - 코드숫자 - 코드이름
+열린칸 - 0~8 - OPENED
+닫힌칸(지뢰X) - -1 - NORMAL
+물음표칸(지뢰x) - -2 - QUESTION
+깃발칸(지뢰X) - -3 - FLAG
+물음표칸(지뢰0) - -4 - QUESTION_MINE
+깃발칸(지뢰0) - -5 - FLAG_MINE
+닫힌칸(지뢰0) - -6 - MINE
+*/
+const $form = document.querySelector('#form');
+const $timer = document.querySelector('#timer');
+const $tbody = document.querySelector('#table tbody');
+const $result = document.querySelector('#result');
+let row ; //줄
+let cell; //칸
+let mine; //지뢰
+const CODE = {
+  NORMAL : -1, //닫힌 칸(지뢰없음);
+  QUESETION : -2,
+  FLAG : -3,
+  QUESETION_MINE : -4,
+  FLAG_MINE : -5,
+  MINE : -6,
+  OPENED:0, //0이상이면 다모두 열린칸
+}
+let data;
+let openCount = 0;
+let startTime;
+let interval;
+
+$form.addEventListener('submit', onSubmit);
+function onSubmit(event){
+  event.preventDefault();
+  row = parseInt(event.target.row.value);
+  cell = parseInt(event.target.cell.value);
+  mine = parseInt(event.target.mine.value);
+  openCount = 0;
+  clearInterval(interval);
+  $tbody.innerHTML = '';
+  drawTable();
+  startTime = new Date(); 
+  interval = setInterval(()=>{
+    const time = Math.floor((new Date() - startTime) /1000);
+    $timer.textContent = `${time}초`;
+  })
+
+}
+
+function plantMine(){
+  const cadidate = Array(row*cell).fill().map((arr,i)=>{
+    return i;
+  });
+  const shuffle = [];
+  while(cadidate.length > row*cell - mine){
+    const chosen = cadidate.splice(Math.floor(Math.random()*cadidate.length),1)[0];
+    shuffle.push(chosen);
+  }
+  const data = [];
+  //이중반복분
+  for(let i=0; i<row; i++){
+    const rowData = [];
+    data.push(rowData);
+    for(let j=0; j<cell; j++){
+      rowData.push(CODE.NORMAL);
+    }
+  }
+
+  //shuffle = [85] 라면 cell = 12 row = 8
+  for(let k=0; k<shuffle.length; k++){
+    const ver = Math.floor(shuffle[k] / cell); //8번째줄 85/10
+    const hor = shuffle[k] % cell; //5번째칸 85%10
+    data[ver][hor] = CODE.MINE;
+  }
+  return data;
+}
+
+function onRightClick(event){
+  event.preventDefault();
+  const target = event.target;
+  const rowIndex = target.parentNode.rowIndex; //클릭한 tr가져오기
+  const cellIndex = target.cellIndex; //클릭한 td가져오기
+  const cellData = data[rowIndex][cellIndex];
+  if( cellData === CODE.MINE ){ //지뢰면
+    data[rowIndex][cellIndex] = CODE.QUESETION; //물음표 지뢰로
+    target.className = 'question';
+    target.textContent = '?';
+  } else if( cellData ===  CODE.QUESETION ){//물음표 지뢰면
+    data[rowIndex][cellIndex] = CODE.FLAG_MINE;
+    target.className = 'flag';
+    target.textContent = '!';
+  } else if(cellData === CODE.FLAG_MINE){ //깃발 지뢰면
+    data[rowIndex][cellIndex] = CODE.MINE; //지뢰로
+    target.className = '';
+    target.textContent = 'X';
+  } else if(cellData===CODE.NORMAL){ //닫힌 칸이면
+    data[rowIndex][cellIndex] = CODE.QUESETION;  //물음표로
+    target.className = 'question';
+    target.textContent = '?'; 
+  } else if(cellData===CODE.QUESETION){//물음표면
+    data[rowIndex][cellIndex] = CODE.FLAG;  //깃발로
+    target.className = 'flag';
+    target.textContent = '!'; 
+  } else if(cellData === CODE.FLAG){ //깃발이면
+    data[rowIndex][cellIndex] = CODE.NORMAL;  //닫힌칸으로
+    target.className = '';
+    target.textContent = ''; 
+  }
+
+}
+
+function countMine(rowIndex, cellIndex){
+  const mines = [CODE.MINE, CODE.QUESTION_MINE, CODE.FLAG_MINE];
+  let i = 0;
+  //?. 옵셔널체이닝 - 있으면 하고 아니면 undefined 를 반환한다.(에러가 나지않게해준다)
+  mines.includes(data[rowIndex - 1]?.[cellIndex - 1]) && i++;//&& 앞에께 존재하면 뒤에꺼를 실행해라. A||B ->앞에꼐 존재하지안으면 B를 실행해라.
+  mines.includes(data[rowIndex - 1]?.[cellIndex]) && i++;
+  mines.includes(data[rowIndex - 1]?.[cellIndex + 1]) && i++;
+  mines.includes(data[rowIndex][cellIndex - 1]) && i++;
+  mines.includes(data[rowIndex][cellIndex + 1]) && i++;
+  mines.includes(data[rowIndex + 1]?.[cellIndex - 1]) && i++;
+  mines.includes(data[rowIndex + 1]?.[cellIndex]) && i++;
+  mines.includes(data[rowIndex + 1]?.[cellIndex + 1]) && i++;
+  return i;
+}
+
+function open(rowIndex, cellIndex){
+  if(data[rowIndex]?.[cellIndex] >= CODE.OPENED) return; //(data[rowIndex]?. 없을수도있어서?.넣어준다)한번 열었던 칸이라면
+  const target = $tbody.children[rowIndex]?.children[cellIndex];
+  if(!target){
+    return;
+  }
+  const count = countMine(rowIndex, cellIndex);
+  target.textContent = count || '';
+  target.className = 'opened';
+  data[rowIndex][cellIndex] = count;
+  openCount++;
+  if(openCount === row * cell - mine){
+    const time = (new Date()-startTime) /1000;
+    clearInterval(interval);
+    $tbody.removeEventListener('contextmenu', onRightClick);
+    $tbody.removeEventListener('click', onLeftClick);
+    setTimeout(()=>{
+      alert(`승리했습니다 ${time}초가 걸렸습니다.`);
+    },500)
+  }
+  console.log(openCount);
+  return count;
+}
+
+//재귀함수 -> 내가 나를 다시 호출하는 것
+function openAround(rI ,cI){
+  // const count = open(rI ,cI);
+  // if( count === 0 ){
+  //   openAround(rI-1, cI-1); // error 이 생긴다. Maximum call stack size exceeded at Array.include -> setTimeout을 해준다
+  //   openAround(rI-1, cI);
+  //   openAround(rI-1, cI+1);
+  //   openAround(rI, cI-1);
+  //   openAround(rI, cI+1);
+  //   openAround(rI+1, cI-1);
+  //   openAround(rI+1, cI);
+  //   openAround(rI+1, cI+1);
+  // }
+
+  setTimeout(()=>{
+  const count = open(rI ,cI);
+  if( count === 0 ){
+    openAround(rI-1, cI-1); 
+    openAround(rI-1, cI);
+    openAround(rI-1, cI+1);
+    openAround(rI, cI-1);
+    openAround(rI, cI+1);
+    openAround(rI+1, cI-1);
+    openAround(rI+1, cI);
+    openAround(rI+1, cI+1);
+  }
+  },0)
+}
+
+function onLeftClick(event){
+  const target = event.target;
+  const rowIndex = target.parentNode.rowIndex;
+  const cellIndex = target.cellIndex;
+  const cellData = data[rowIndex][cellIndex];
+  if(cellData===CODE.NORMAL){ //닫힌칸이면
+    openAround(rowIndex, cellIndex); //나의 칸을 열고 주변칸도 비워있으면 같이 연다
+  } else if(cellData===CODE.MINE){ //지뢰칸이면
+    target.textContent = '펑';
+    target.className = 'opened';
+    clearInterval(interval);
+    $tbody.removeEventListener('contextmenu', onRightClick);
+    $tbody.removeEventListener('click', onLeftClick);
+  }//나머지는 무시
+  //아무 동작도 안함
+}
+
+function drawTable(){
+  data = plantMine();
+  data.forEach((row)=>{  
+    const $tr = document.createElement('tr');
+    row.forEach((cell)=>{
+      const $td = document.createElement('td');
+      if( cell === CODE.MINE ){
+        $td.textContent = 'X'; //개발 편의를 위해(지뢰표시)
+      }
+      $tr.append($td);
+    });
+    $tbody.append($tr);
+    $tbody.addEventListener('contextmenu', onRightClick); //contextment->마우스 오른쪽 클릭
+    $tbody.addEventListener('click', onLeftClick); //좌클릭
+  })
+}
+
+/*
+옵셔널 체이닝
+?.는 옵셔널 체이닝(option chaining)이라는 문법이다. 앞에있는것이 참(truthy)인 값이면 뒤 코드를 실행하고,
+거짓(falsy)인 값이면 코드를 통쨰로 undefined를 만들어버립니다.
+const obj = undefined;
+const arr = undefined;
+const func = undefined;
+obj?.b; //undefined
+arr?.[0]; //undefined
+func?.(); //undefined
+
+객체 배열뿐 아니라 함수에도 옵셔널 체이닝을 적용할 수 있습니다.
+속성에 접근하거나 호출하려는 것이 거짓인 값인지 아닌지 의심될때는 옵셔널 체이닝을 적용하자.
+
+재귀함수
+어떤 함수의 내부에서 자기 자신을 다시 호출하는 함수를 재귀 함수라고 한다.
+재귀함수를 사용할때는 호출스택의 최개 크기를 초과하는 경우가 빈번하게 발생한다. 
+이때 Maximum call stack size exceeded 오류가 발생하는데 setTimeout과 같은 비동기 함수를 사용해 해결할수있다.
+재귀함수를 사용할떄는 연산량이 많으면 브라우저가 느려지는 현상이 발생하므로 연산량을 최소화 할 수 있게 코드를 작성하자.
+*/
+
+
+</script>  
+</body>
+</html>
