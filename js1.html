@@ -1,0 +1,36 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+<script>
+const add = (a,b) => a+b;
+
+function calculator(func,a,b){
+  return func(a,b);
+}
+add(3,5); //8
+calculator(add, 3,5); //8
+
+/*
+calculator 안에 add함수를 호출하면
+calculator(add(), 3,5) 이런식으로하면 에러가 나온다
+
+document.querySelector('#header').addEventListener('click', add()) -> 클릭도하지 않았는데 add 함수가 가 실행됨
+이런경우 add()를 함수를 바로 호출한 것임으로 아래처럼 나타난다.(return 값으로 대체한다고 생각하자)
+document.querySelector('#header').addEventListener('click', undefined+undefined)
+
+
+선언한 함수가 이런식으로 되어있으면 잘못된 코드가아니다 -> 고차함수(함수안에서 함수를 호출하는 함수)
+const onClick = () => () =>{
+  console.log('hello')
+}
+
+document.querySelector('body').addEventListener('click', onClick())
+*/
+</script>
+</body>
+</html>
